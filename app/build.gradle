@@ -1,0 +1,84 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+
+android {
+    compileSdkVersion 27
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    defaultConfig {
+        applicationId "com.zhuinden.mvvmaacrxjavaretrofitroom"
+        minSdkVersion 16
+        targetSdkVersion 27
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        kapt {
+            arguments {
+                arg("room.schemaLocation", "$projectDir/schemas".toString())
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+androidExtensions {
+    experimental = true
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation"org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation "com.android.support:recyclerview-v7:27.1.1"
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation "org.jetbrains.anko:anko-commons:0.10.4"
+    implementation "org.jetbrains.anko:anko-sdk15-listeners:0.10.4"
+
+    implementation "android.arch.persistence.room:runtime:1.1.0-beta2"
+    implementation "android.arch.paging:runtime:1.0.0-beta1"
+    kapt "android.arch.persistence.room:compiler:1.1.0-beta2"
+    implementation "android.arch.lifecycle:runtime:1.1.1" // not necessary if you are using Support Library 26.1+
+    implementation "android.arch.lifecycle:extensions:1.1.1"
+    kapt "android.arch.lifecycle:compiler:1.1.1" // not needed if you are using the DefaultLifecycleObserver from common-java8 artifact.
+
+    implementation "io.reactivex.rxjava2:rxjava:2.1.12"
+    implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
+    implementation "com.github.akarnokd:rxjava2-extensions:0.18.9"
+    implementation 'com.jakewharton.rxrelay2:rxrelay:2.0.0'
+    implementation 'io.reactivex.rxjava2:rxkotlin:2.2.0'
+
+    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
+    implementation 'com.squareup.retrofit2:adapter-rxjava2:2.4.0'
+    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
+
+    implementation('com.squareup.retrofit2:converter-simplexml:2.4.0') {
+        exclude group: 'org.simpleframework', module: 'simple-xml'
+    }
+
+    implementation 'com.github.bumptech.glide:annotations:4.6.1'
+    kapt 'com.github.bumptech.glide:compiler:4.6.1'
+    implementation "com.github.bumptech.glide:okhttp3-integration:4.6.1"
+    implementation 'com.github.bumptech.glide:annotations:4.6.1'
+
+    // RxJava support for Room (use 1.1.0-beta2 for latest alpha)
+    implementation "android.arch.persistence.room:rxjava2:1.0.0"
+
+    // ReactiveStreams support for LiveData
+    implementation "android.arch.lifecycle:reactivestreams:1.1.1"
+
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+}
