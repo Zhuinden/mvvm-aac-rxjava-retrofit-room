@@ -55,7 +55,8 @@ class CustomApplication : Application() {
 
         catDao = databaseManager.catDao
         retrofit = Retrofit.Builder().addConverterFactory(SimpleXmlConverterFactory.create())
-            .baseUrl("http://thecatapi.com/").addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+            .baseUrl("http://thecatapi.com/")
+            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
             .build()
 
         catService = retrofit.create(CatService::class.java);
