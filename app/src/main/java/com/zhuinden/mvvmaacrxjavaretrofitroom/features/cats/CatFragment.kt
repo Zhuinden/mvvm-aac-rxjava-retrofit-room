@@ -1,6 +1,8 @@
 package com.zhuinden.mvvmaacrxjavaretrofitroom.features.cats
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
@@ -9,7 +11,6 @@ import android.view.View
 import android.view.ViewGroup
 import com.zhuinden.mvvmaacrxjavaretrofitroom.R
 import com.zhuinden.mvvmaacrxjavaretrofitroom.application.CustomApplication
-import com.zhuinden.mvvmaacrxjavaretrofitroom.data.remote.task.CatTaskManager
 import com.zhuinden.mvvmaacrxjavaretrofitroom.utils.RecyclerViewScrollBottomOnSubscribe
 import com.zhuinden.mvvmaacrxjavaretrofitroom.utils.createViewModel
 import io.reactivex.Observable
@@ -40,7 +41,7 @@ class CatFragment : Fragment() {
         with(catRecyclerView) {
             layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
             setHasFixedSize(true)
-            adapter = CatAdapter().also {
+            adapter = CatAdapter(catViewModel).also {
                 catAdapter = it
             }
         }
@@ -53,6 +54,14 @@ class CatFragment : Fragment() {
             .subscribeBy(onNext = { isScroll ->
                 catViewModel.handleScrollToBottom(isScroll)
             })
+
+        compositeDisposable += catViewModel.openCatEvent.subscribeBy(onNext = { cat ->
+            val activity = requireActivity()
+            activity.startActivity(Intent().apply {
+                action = Intent.ACTION_VIEW
+                data = Uri.parse(cat.sourceUrl);
+            })
+        })
     }
 
     override fun onDestroy() {
