@@ -14,10 +14,10 @@ package com.zhuinden.mvvmaacrxjavaretrofitroom.utils.optional;
  * the License.
  */
 
-import android.support.annotation.Nullable;
-
 import java.io.Serializable;
 import java.util.Set;
+
+import androidx.annotation.Nullable;
 
 /**
  * An immutable object that may contain a non-null reference to another object. Each instance of

@@ -4,7 +4,7 @@ import io.reactivex.Scheduler
 
 typealias ExecutionBlock = () -> Unit
 
-interface Scheduler {
+interface ThreadScheduler {
     fun asRxScheduler(): Scheduler
 
     fun runOnThread(runnable: ExecutionBlock)

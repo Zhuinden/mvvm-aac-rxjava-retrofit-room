@@ -1,8 +1,8 @@
 package com.zhuinden.mvvmaacrxjavaretrofitroom.data.local.entity
 
-import android.arch.persistence.room.Entity
-import android.arch.persistence.room.PrimaryKey
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.zhuinden.mvvmaacrxjavaretrofitroom.data.local.entity.Cat.Companion.TABLE_NAME
 
 @Entity(tableName = TABLE_NAME)

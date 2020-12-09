@@ -1,11 +1,10 @@
 package com.zhuinden.mvvmaacrxjavaretrofitroom.utils
 
-import io.reactivex.android.MainThreadDisposable
-import io.reactivex.internal.disposables.DisposableHelper.isDisposed
-import android.support.v4.view.ViewCompat.canScrollVertically
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
+import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.ObservableOnSubscribe
+import io.reactivex.android.MainThreadDisposable
 
 
 /**
@@ -41,3 +40,5 @@ class RecyclerViewScrollBottomOnSubscribe(val view: RecyclerView) : ObservableOn
         emitter.onNext(false)
     }
 }
+
+fun RecyclerView.bottomScrolledEvents() = Observable.create(RecyclerViewScrollBottomOnSubscribe(this))

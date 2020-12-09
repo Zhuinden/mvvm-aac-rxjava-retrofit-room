@@ -4,22 +4,21 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.support.v7.widget.LinearLayoutManager
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.zhuinden.liveevent.observe
 import com.zhuinden.mvvmaacrxjavaretrofitroom.R
 import com.zhuinden.mvvmaacrxjavaretrofitroom.application.CustomApplication
-import com.zhuinden.mvvmaacrxjavaretrofitroom.utils.RecyclerViewScrollBottomOnSubscribe
+import com.zhuinden.mvvmaacrxjavaretrofitroom.data.local.entity.Cat
+import com.zhuinden.mvvmaacrxjavaretrofitroom.databinding.FragmentCatsBinding
+import com.zhuinden.mvvmaacrxjavaretrofitroom.utils.bottomScrolledEvents
 import com.zhuinden.mvvmaacrxjavaretrofitroom.utils.createViewModel
-import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.rxkotlin.subscribeBy
-import kotlinx.android.synthetic.main.fragment_cats.*
 
-class CatFragment : Fragment() {
+class CatFragment : Fragment(R.layout.fragment_cats), CatAdapter.OnItemClicked {
     private lateinit var catViewModel: CatViewModel
 
     private lateinit var catAdapter: CatAdapter
@@ -28,44 +27,56 @@ class CatFragment : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        val application = context.applicationContext as CustomApplication
-        catViewModel = createViewModel { CatViewModel(application.catRepository) }
-        // if only *something* put together this ViewModel instance for me! :D
-    }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
-        inflater.inflate(R.layout.fragment_cats, container, false)
+        val application = context.applicationContext as CustomApplication
+
+        catViewModel = createViewModel {
+            CatViewModel(
+                application.catDao,
+                application.catDownloadManager,
+                application.uiThreadScheduler)
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        with(catRecyclerView) {
-            layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
-            setHasFixedSize(true)
-            adapter = CatAdapter(catViewModel).also {
-                catAdapter = it
+
+        val binding = FragmentCatsBinding.bind(view)
+
+        with(binding) {
+            with(catRecyclerView) {
+                layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
+                setHasFixedSize(true)
+                adapter = CatAdapter(this@CatFragment).also {
+                    catAdapter = it
+                }
+            }
+
+            compositeDisposable += catViewModel.cats.subscribeBy(onNext = { cats ->
+                catAdapter.updateData(cats)
+            })
+
+            compositeDisposable += catRecyclerView.bottomScrolledEvents()
+                .subscribeBy(onNext = { isScroll ->
+                    catViewModel.handleScrollToBottom(isScroll)
+                })
+
+            catViewModel.openCatEvent.observe(viewLifecycleOwner) { cat ->
+                val activity = requireActivity()
+                activity.startActivity(Intent().apply {
+                    action = Intent.ACTION_VIEW
+                    data = Uri.parse(cat.sourceUrl);
+                })
             }
         }
-
-        compositeDisposable += catViewModel.observeCats(onNext = { cats ->
-            catAdapter.updateData(cats)
-        })
-
-        compositeDisposable += Observable.create(RecyclerViewScrollBottomOnSubscribe(catRecyclerView))
-            .subscribeBy(onNext = { isScroll ->
-                catViewModel.handleScrollToBottom(isScroll)
-            })
-
-        compositeDisposable += catViewModel.openCatEvent.subscribeBy(onNext = { cat ->
-            val activity = requireActivity()
-            activity.startActivity(Intent().apply {
-                action = Intent.ACTION_VIEW
-                data = Uri.parse(cat.sourceUrl);
-            })
-        })
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         compositeDisposable.clear()
+    }
+
+    override fun onItemClicked(cat: Cat) {
+        catViewModel.openCatPage(cat)
     }
 }

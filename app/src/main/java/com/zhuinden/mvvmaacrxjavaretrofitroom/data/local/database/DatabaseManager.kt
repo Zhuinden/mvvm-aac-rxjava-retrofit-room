@@ -1,8 +1,8 @@
 package com.zhuinden.mvvmaacrxjavaretrofitroom.data.local.database
 
-import android.arch.persistence.room.RoomDatabase
-import android.arch.persistence.room.TypeConverters
-import android.arch.persistence.room.Database
+import androidx.room.Database
+import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import com.zhuinden.mvvmaacrxjavaretrofitroom.data.local.dao.CatDao
 import com.zhuinden.mvvmaacrxjavaretrofitroom.data.local.entity.Cat
 

@@ -1,17 +1,16 @@
 package com.zhuinden.mvvmaacrxjavaretrofitroom.application
 
 import android.app.Application
-import android.arch.persistence.room.Room
-import com.zhuinden.mvvmaacrxjavaretrofitroom.data.CatRepository
+import androidx.room.Room
+import com.zhuinden.mvvmaacrxjavaretrofitroom.data.CatDownloadManager
+import com.zhuinden.mvvmaacrxjavaretrofitroom.data.GetCatsFetchTaskRunner
 import com.zhuinden.mvvmaacrxjavaretrofitroom.data.local.dao.CatDao
 import com.zhuinden.mvvmaacrxjavaretrofitroom.data.local.database.DatabaseManager
 import com.zhuinden.mvvmaacrxjavaretrofitroom.data.remote.service.CatService
-import com.zhuinden.mvvmaacrxjavaretrofitroom.data.remote.task.CatTaskFactory
-import com.zhuinden.mvvmaacrxjavaretrofitroom.data.remote.task.CatTaskManager
-import com.zhuinden.mvvmaacrxjavaretrofitroom.utils.schedulers.IoScheduler
-import com.zhuinden.mvvmaacrxjavaretrofitroom.utils.schedulers.MainScheduler
-import com.zhuinden.mvvmaacrxjavaretrofitroom.utils.schedulers.NetworkScheduler
-import com.zhuinden.mvvmaacrxjavaretrofitroom.utils.schedulers.Scheduler
+import com.zhuinden.mvvmaacrxjavaretrofitroom.utils.schedulers.IoThreadScheduler
+import com.zhuinden.mvvmaacrxjavaretrofitroom.utils.schedulers.NetworkThreadScheduler
+import com.zhuinden.mvvmaacrxjavaretrofitroom.utils.schedulers.ThreadScheduler
+import com.zhuinden.mvvmaacrxjavaretrofitroom.utils.schedulers.UiThreadScheduler
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.simplexml.SimpleXmlConverterFactory
@@ -28,22 +27,19 @@ class CustomApplication : Application() {
     lateinit var catService: CatService
         private set
 
-    lateinit var mainScheduler: Scheduler
+    lateinit var uiThreadScheduler: ThreadScheduler
         private set
 
-    lateinit var networkScheduler: Scheduler
+    lateinit var networkThreadScheduler: ThreadScheduler
         private set
 
-    lateinit var ioScheduler: Scheduler
+    lateinit var ioThreadScheduler: ThreadScheduler
         private set
 
-    lateinit var catTaskFactory: CatTaskFactory
+    lateinit var catDownloadManager: CatDownloadManager
         private set
 
-    lateinit var catTaskManager: CatTaskManager
-        private set
-
-    lateinit var catRepository: CatRepository
+    lateinit var getCatsFetchTaskRunner: GetCatsFetchTaskRunner
         private set
 
     override fun onCreate() {
@@ -61,13 +57,12 @@ class CustomApplication : Application() {
 
         catService = retrofit.create(CatService::class.java);
 
-        mainScheduler = MainScheduler()
-        ioScheduler = IoScheduler()
-        networkScheduler = NetworkScheduler()
+        uiThreadScheduler = UiThreadScheduler()
+        ioThreadScheduler = IoThreadScheduler()
+        networkThreadScheduler = NetworkThreadScheduler()
 
-        catTaskManager = CatTaskManager()
-        catTaskFactory = CatTaskFactory(catTaskManager, catService, catDao, networkScheduler, ioScheduler)
+        getCatsFetchTaskRunner = GetCatsFetchTaskRunner(catService, catDao, networkThreadScheduler, ioThreadScheduler)
 
-        catRepository = CatRepository(catDao, catTaskManager, catTaskFactory, mainScheduler)
+        catDownloadManager = CatDownloadManager(getCatsFetchTaskRunner, catDao)
     }
 }

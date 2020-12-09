@@ -1,28 +1,29 @@
-package com.zhuinden.mvvmaacrxjavaretrofitroom.data.remote.task
+package com.zhuinden.mvvmaacrxjavaretrofitroom.data
 
-import android.util.Log
 import com.zhuinden.mvvmaacrxjavaretrofitroom.data.local.dao.CatDao
 import com.zhuinden.mvvmaacrxjavaretrofitroom.data.local.entity.Cat
 import com.zhuinden.mvvmaacrxjavaretrofitroom.data.remote.api.CatBO
 import com.zhuinden.mvvmaacrxjavaretrofitroom.data.remote.service.CatService
-import com.zhuinden.mvvmaacrxjavaretrofitroom.data.remote.task.CatTaskManager.Companion.SAVE_CATS_TASK
-import com.zhuinden.mvvmaacrxjavaretrofitroom.utils.schedulers.Scheduler
+import com.zhuinden.mvvmaacrxjavaretrofitroom.utils.schedulers.ThreadScheduler
 import io.reactivex.Single
 import io.reactivex.rxkotlin.subscribeBy
+import java.util.concurrent.atomic.AtomicBoolean
 
-class CatTaskFactory(
-    val catsTaskManager: CatTaskManager,
+class GetCatsFetchTaskRunner(
     val catsService: CatService,
     val catDao: CatDao,
-    val networkScheduler: Scheduler,
-    val ioScheduler: Scheduler
+    val networkThreadScheduler: ThreadScheduler,
+    val ioThreadScheduler: ThreadScheduler
 ) {
-    fun createSaveCatsTask(): Single<Unit> = Single.create { emitter ->
-        catsTaskManager.registerTask(SAVE_CATS_TASK)
+    private val isTaskRunning = AtomicBoolean(false)
+    fun isTaskRunning(): Boolean = isTaskRunning.get()
+
+    fun execute(): Single<Unit> = Single.create { emitter ->
         catsService.getCats()
-            .subscribeOn(networkScheduler.asRxScheduler())
-            .observeOn(ioScheduler.asRxScheduler())
-            .doFinally { catsTaskManager.unregisterTask(SAVE_CATS_TASK) }
+            .doOnSubscribe { isTaskRunning.set(true) }
+            .subscribeOn(networkThreadScheduler.asRxScheduler())
+            .observeOn(ioThreadScheduler.asRxScheduler())
+            .doFinally { isTaskRunning.set(false) }
             .subscribeBy(onSuccess = { catsBO ->
                 val cats = catsBO.cats
                 if (cats == null) {
@@ -35,7 +36,6 @@ class CatTaskFactory(
                         Cat(id!!, url, sourceUrl, maxRank + index)
                     }
                 }.let { catList ->
-                    Log.i(SAVE_CATS_TASK, "Saving cats to database.");
                     catDao.insertCats(catList)
                 }
                 emitter.onSuccess(Unit)
@@ -44,3 +44,4 @@ class CatTaskFactory(
             })
     }
 }
+

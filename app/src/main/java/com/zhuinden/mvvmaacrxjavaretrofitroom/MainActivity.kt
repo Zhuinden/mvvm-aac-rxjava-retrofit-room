@@ -1,7 +1,7 @@
 package com.zhuinden.mvvmaacrxjavaretrofitroom
 
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import com.zhuinden.mvvmaacrxjavaretrofitroom.features.cats.CatFragment
 
 class MainActivity : AppCompatActivity() {
@@ -10,7 +10,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        if(savedInstanceState == null) {
+        if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
                 .add(R.id.container, CatFragment())
                 .commit()

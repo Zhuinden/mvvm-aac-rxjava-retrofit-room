@@ -14,10 +14,10 @@ package com.zhuinden.mvvmaacrxjavaretrofitroom.utils.optional;
  * the License.
  */
 
-import android.support.annotation.Nullable;
-
 import java.util.Collections;
 import java.util.Set;
+
+import androidx.annotation.Nullable;
 
 /**
  * Implementation of an {@link Optional} containing a reference.
