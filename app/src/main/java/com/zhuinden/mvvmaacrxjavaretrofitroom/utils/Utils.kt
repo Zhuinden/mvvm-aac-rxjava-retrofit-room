@@ -9,27 +9,45 @@ import android.view.ViewGroup
 import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.AbstractSavedStateViewModelFactory
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 
-inline fun <reified T: ViewModel> AppCompatActivity.createViewModel(crossinline factory: () -> T): T = T::class.java.let { clazz ->
-    ViewModelProvider(this, object : ViewModelProvider.Factory {
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            if (modelClass == clazz) {
-                @Suppress("UNCHECKED_CAST")
-                return factory() as T
+inline fun <reified VM : ViewModel> Fragment.fragmentViewModels(crossinline factory: (SavedStateHandle) -> VM) = viewModels<VM>(
+    factoryProducer = {
+        object : AbstractSavedStateViewModelFactory(this, arguments) {
+            override fun <T : ViewModel?> create(key: String, modelClass: Class<T>, handle: SavedStateHandle): T {
+                if (modelClass == VM::class.java) {
+                    @Suppress("UNCHECKED_CAST")
+                    return factory(handle) as T
+                }
+                throw IllegalArgumentException("Unexpected argument: $modelClass")
             }
-            throw IllegalArgumentException("Unexpected argument: $modelClass")
         }
-    }).get(clazz)
+    }
+)
+
+inline fun <reified T : ViewModel> AppCompatActivity.createViewModel(crossinline factory: (SavedStateHandle) -> T): T = T::class.java.let { clazz ->
+    ViewModelProvider(this,
+        object : AbstractSavedStateViewModelFactory(this, intent?.extras) {
+            override fun <T : ViewModel?> create(key: String, modelClass: Class<T>, handle: SavedStateHandle): T {
+                if (modelClass == clazz) {
+                    @Suppress("UNCHECKED_CAST")
+                    return factory(handle) as T
+                }
+                throw IllegalArgumentException("Unexpected argument: $modelClass")
+            }
+        }).get(clazz)
 }
 
-inline fun <reified T: ViewModel> Fragment.createViewModel(crossinline factory: () -> T): T = T::class.java.let { clazz ->
-    ViewModelProvider(this, object : ViewModelProvider.Factory {
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+inline fun <reified T : ViewModel> Fragment.createViewModel(crossinline factory: (SavedStateHandle) -> T): T = T::class.java.let { clazz ->
+    ViewModelProvider(this, object : AbstractSavedStateViewModelFactory(this, arguments) {
+        override fun <T : ViewModel?> create(key: String, modelClass: Class<T>, handle: SavedStateHandle): T {
             if (modelClass == clazz) {
                 @Suppress("UNCHECKED_CAST")
-                return factory() as T
+                return factory(handle) as T
             }
             throw IllegalArgumentException("Unexpected argument: $modelClass")
         }

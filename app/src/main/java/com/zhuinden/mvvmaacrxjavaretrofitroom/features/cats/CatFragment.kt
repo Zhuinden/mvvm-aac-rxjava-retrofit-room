@@ -1,6 +1,5 @@
 package com.zhuinden.mvvmaacrxjavaretrofitroom.features.cats
 
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -13,30 +12,24 @@ import com.zhuinden.mvvmaacrxjavaretrofitroom.application.CustomApplication
 import com.zhuinden.mvvmaacrxjavaretrofitroom.data.local.entity.Cat
 import com.zhuinden.mvvmaacrxjavaretrofitroom.databinding.FragmentCatsBinding
 import com.zhuinden.mvvmaacrxjavaretrofitroom.utils.bottomScrolledEvents
-import com.zhuinden.mvvmaacrxjavaretrofitroom.utils.createViewModel
+import com.zhuinden.mvvmaacrxjavaretrofitroom.utils.fragmentViewModels
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.rxkotlin.subscribeBy
 
 class CatFragment : Fragment(R.layout.fragment_cats), CatAdapter.OnItemClicked {
-    private lateinit var catViewModel: CatViewModel
+    @Suppress("UNCHECKED_CAST")
+    private val catViewModel by fragmentViewModels {
+        val application = requireContext().applicationContext as CustomApplication
+
+        with(application) {
+            CatViewModel(catDao, catDownloadManager, uiThreadScheduler)
+        }
+    }
 
     private lateinit var catAdapter: CatAdapter
 
     private val compositeDisposable = CompositeDisposable()
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-
-        val application = context.applicationContext as CustomApplication
-
-        catViewModel = createViewModel {
-            CatViewModel(
-                application.catDao,
-                application.catDownloadManager,
-                application.uiThreadScheduler)
-        }
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
