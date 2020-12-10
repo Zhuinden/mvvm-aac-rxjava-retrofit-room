@@ -18,7 +18,6 @@ import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.rxkotlin.subscribeBy
 
 class CatFragment : Fragment(R.layout.fragment_cats), CatAdapter.OnItemClicked {
-    @Suppress("UNCHECKED_CAST")
     private val catViewModel by fragmentViewModels {
         val application = requireContext().applicationContext as CustomApplication
 
